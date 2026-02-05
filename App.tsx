@@ -39,7 +39,8 @@ const App: React.FC = () => {
 
   const handleSwitchUser = () => {
     if (!currentUser) return;
-    const nextUser = currentUser.role === 'backoffice' ? MOCK_USERS.itau_client : MOCK_USERS.ventura_admin;
+    // Ajuste aqui para usar client_demo conforme definido em constants.tsx
+    const nextUser = currentUser.role === 'backoffice' ? MOCK_USERS.client_demo : MOCK_USERS.ventura_admin;
     setCurrentUser(nextUser);
     setActiveTab('dashboard');
     setIsPublicView(false);

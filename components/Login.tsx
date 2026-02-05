@@ -62,7 +62,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       }
     } else {
       // Fallback demo logic
-      const mockUser = email.includes('itau') ? MOCK_USERS.itau_client : MOCK_USERS.ventura_admin;
+      const mockUser = email.includes('itau') ? MOCK_USERS.client_demo : MOCK_USERS.ventura_admin;
       const userWithFlag = { ...mockUser, mustChangePassword: email.includes('primeiro') };
       
       if (userWithFlag.mustChangePassword) {
