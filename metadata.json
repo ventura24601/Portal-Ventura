@@ -1,0 +1,7 @@
+{
+  "name": "Portal de Gestão Ventura",
+  "description": "Plataforma profissional para gestão de logística, brindes corporativos e faturamento da Ventura Promocional.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
