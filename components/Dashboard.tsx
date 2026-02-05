@@ -79,14 +79,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       const [jobsRes, eventsRes, messagesRes] = await Promise.all([jobsQuery, eventsQuery, messagesQuery]);
 
       if (jobsRes.data) {
+        // Fix: Add missing fields clientId and paymentStatus to the Job mapping
         const allJobs: Job[] = jobsRes.data.map((db: any) => ({
           id: db.id,
           description: db.description,
           company: db.company,
+          clientId: db.client_id || '',
           clientName: db.client_name,
           quantity: db.quantity,
           totalValue: db.total_value,
           status: db.status as JobStatus,
+          paymentStatus: db.payment_status || 'Aguardando Pagamento',
           orderAcceptanceNumber: db.order_acceptance_number,
           startDate: db.start_date
         }));
