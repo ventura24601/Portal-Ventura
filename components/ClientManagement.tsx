@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, Mail, Building, X, Save, Loader2, MoreVertical, ShieldCheck, Database, AlertCircle, Plus, LayoutPanelTop, Edit2 } from 'lucide-react';
+import { Search, UserPlus, Mail, Building, X, Save, Loader2, MoreVertical, ShieldCheck, Database, AlertCircle, Plus, LayoutPanelTop, Edit2, Key, Eye, EyeOff } from 'lucide-react';
 import { MOCK_CLIENTS } from '../constants';
 import { supabase, isSupabaseConfigured } from '../supabase';
 import { Institution } from '../types';
@@ -14,6 +14,7 @@ const ClientManagement: React.FC = () => {
   const [isInstModalOpen, setIsInstModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [newClient, setNewClient] = useState({
     id: '',
@@ -21,7 +22,9 @@ const ClientManagement: React.FC = () => {
     email: '',
     company: '',
     department: '',
-    role: 'client'
+    role: 'client',
+    password: '',
+    must_change_password: true
   });
 
   const [newInstData, setNewInstData] = useState({
@@ -94,13 +97,16 @@ const ClientManagement: React.FC = () => {
 
   const handleEditClient = (client: any) => {
     setErrorMessage(null);
+    setShowPassword(false);
     setNewClient({
       id: client.id,
       name: client.name,
       email: client.email,
       company: client.company,
       department: client.department || '',
-      role: client.role || 'client'
+      role: client.role || 'client',
+      password: '',
+      must_change_password: client.must_change_password ?? true
     });
     setIsModalOpen(true);
   };
@@ -135,7 +141,7 @@ const ClientManagement: React.FC = () => {
   const handleSaveClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClient.name || !newClient.email || !newClient.company) {
-      alert("Preencha todos os campos, incluindo a Instituição.");
+      alert("Preencha todos os campos obrigatórios.");
       return;
     }
 
@@ -155,7 +161,10 @@ const ClientManagement: React.FC = () => {
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newClient.name)}&background=EC7000&color=fff`
         };
 
-        if (!isEditing) {
+        if (newClient.password) {
+          clientPayload.password = newClient.password;
+          clientPayload.must_change_password = newClient.must_change_password;
+        } else if (!isEditing) {
           clientPayload.password = 'Ventura123';
           clientPayload.must_change_password = true;
         }
@@ -167,9 +176,9 @@ const ClientManagement: React.FC = () => {
         if (error) throw error;
         
         setIsModalOpen(false);
-        setNewClient({ id: '', name: '', email: '', company: '', department: '', role: 'client' });
+        setNewClient({ id: '', name: '', email: '', company: '', department: '', role: 'client', password: '', must_change_password: true });
         await fetchClients(); 
-        alert(isEditing ? 'Dados do cliente atualizados!' : 'Cliente cadastrado com a senha padrão Ventura123');
+        alert(isEditing ? 'Dados do cliente atualizados!' : 'Cliente cadastrado com sucesso!');
       } else {
         alert('Modo Simulação: Operação realizada localmente.');
         setIsModalOpen(false);
@@ -207,7 +216,7 @@ const ClientManagement: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text" 
-            placeholder="Buscar clientes..." 
+            placeholder="Buscar clientes externos..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold text-gray-800 focus:bg-white focus:border-blue-200 transition-all shadow-inner"
@@ -230,7 +239,7 @@ const ClientManagement: React.FC = () => {
           <button 
             onClick={() => { 
               setErrorMessage(null); 
-              setNewClient({ id: '', name: '', email: '', company: institutions[0]?.name || '', department: '', role: 'client' });
+              setNewClient({ id: '', name: '', email: '', company: institutions[0]?.name || '', department: '', role: 'client', password: '', must_change_password: true });
               setIsModalOpen(true); 
             }}
             className="flex items-center gap-2 px-8 py-4 text-white font-black rounded-2xl shadow-lg bg-[#004481] text-xs uppercase tracking-widest hover:bg-blue-900 transition-all"
@@ -286,7 +295,10 @@ const ClientManagement: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-10 py-6">
-                      <div className="flex items-center gap-2 text-xs font-black text-green-600"><ShieldCheck size={16} /> ATIVO</div>
+                      <div className="flex items-center gap-2 text-xs font-black text-green-600">
+                        {client.must_change_password ? <AlertCircle size={16} className="text-orange-500" /> : <ShieldCheck size={16} />} 
+                        {client.must_change_password ? 'Primeiro Acesso Pendente' : 'ATIVO'}
+                      </div>
                     </td>
                     <td className="px-10 py-6 text-right">
                       <button 
@@ -306,12 +318,12 @@ const ClientManagement: React.FC = () => {
 
       {isInstModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[150] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[3.5rem] w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
-            <div className="p-10 border-b border-gray-100 flex justify-between items-center bg-white">
+          <div className="bg-white rounded-[3.5rem] w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-10 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
               <h3 className="text-2xl font-black text-gray-800 tracking-tight uppercase">Nova Instituição</h3>
               <button onClick={() => setIsInstModalOpen(false)} className="p-3 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"><X size={32} /></button>
             </div>
-            <form onSubmit={handleSaveInstitution} className="p-12 space-y-6 bg-white">
+            <form onSubmit={handleSaveInstitution} className="p-12 space-y-6 bg-white overflow-y-auto custom-scrollbar">
               <div>
                 <label className={labelClass}>Nome da Empresa / Unidade</label>
                 <input type="text" required autoFocus className={inputClass} value={newInstData.name} onChange={(e) => setNewInstData({...newInstData, name: e.target.value})} placeholder="Ex: Empresa de Investimentos" />
@@ -335,22 +347,15 @@ const ClientManagement: React.FC = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[150] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[3.5rem] w-full max-w-xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
-            <div className="p-10 border-b border-gray-100 flex justify-between items-center bg-white">
+          <div className="bg-white rounded-[3.5rem] w-full max-w-xl max-h-[90vh] shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col">
+            <div className="p-10 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
               <h3 className="text-2xl font-black text-gray-800 tracking-tight uppercase">
-                {newClient.id ? 'Editar Dados do Cliente' : 'Novo Cliente Externo'}
+                {newClient.id ? 'Editar Cliente Externo' : 'Novo Cliente Externo'}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="p-3 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"><X size={32} /></button>
             </div>
             
-            <form onSubmit={handleSaveClient} className="p-12 space-y-6 bg-white">
-              {!newClient.id && (
-                <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 mb-2">
-                  <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Aviso de Segurança</p>
-                  <p className="text-xs text-blue-600 font-bold mt-1">Este cliente será criado com a senha provisória <span className="underline">Ventura123</span>.</p>
-                </div>
-              )}
-              
+            <form onSubmit={handleSaveClient} className="p-12 space-y-6 bg-white overflow-y-auto custom-scrollbar">
               <div>
                 <label className={labelClass}>Nome Completo</label>
                 <input type="text" required className={inputClass} value={newClient.name} onChange={(e) => setNewClient({...newClient, name: e.target.value})} />
@@ -381,7 +386,41 @@ const ClientManagement: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-8 flex flex-col gap-4">
+              <div className="pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2 mb-4 text-orange-600">
+                   <Key size={18} />
+                   <h4 className="font-black text-[10px] uppercase tracking-widest">Segurança & Acesso</h4>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className={labelClass}>{newClient.id ? 'Redefinir Senha' : 'Senha de Acesso'}</label>
+                    <div className="relative">
+                      <input 
+                        type={showPassword ? 'text' : 'password'} 
+                        className={inputClass} 
+                        value={newClient.password} 
+                        onChange={(e) => setNewClient({...newClient, password: e.target.value})} 
+                        placeholder={newClient.id ? "Deixe em branco para não alterar" : "Senha inicial"}
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <input 
+                      type="checkbox" 
+                      id="mustChange"
+                      className="w-5 h-5 rounded border-gray-300 text-orange-600 focus:ring-orange-500" 
+                      checked={newClient.must_change_password}
+                      onChange={(e) => setNewClient({...newClient, must_change_password: e.target.checked})}
+                    />
+                    <label htmlFor="mustChange" className="text-xs font-bold text-gray-600 cursor-pointer">Exigir troca de senha no próximo login</label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-8 flex flex-col gap-4 sticky bottom-0 bg-white">
                 <button 
                   type="submit" disabled={isSaving}
                   className="w-full py-6 bg-[#004481] text-white font-black rounded-2xl shadow-xl flex items-center justify-center gap-3 text-xs uppercase tracking-widest hover:bg-blue-900 transition-all"

@@ -36,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
     { id: 'inventory', label: 'Estoque', icon: Box, roles: ['backoffice', 'client'] },
     { id: 'jobs', label: 'Produção & Jobs', icon: Wrench, roles: ['backoffice', 'client'] },
     { id: 'financial', label: 'Faturamento', icon: Receipt, roles: ['backoffice', 'client'] },
-    { id: 'clients', label: 'Clientes Banco', icon: Users, roles: ['backoffice'] },
+    { id: 'clients', label: 'Clientes Externos', icon: Users, roles: ['backoffice'] },
     { id: 'team', label: 'Equipe Ventura', icon: UserCheck, roles: ['backoffice'] },
   ];
 
